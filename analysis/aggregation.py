@@ -188,15 +188,17 @@ class Aggregator():
             'idlingCount':[],
             'mileage':[],
             'speed_mean':[],
-            'speed_cv':[],
+            'speed_std':[],
             'acc_mean':[],
-            'acc_cv':[],
+            'acc_std':[],
+            'decel_mean':[],
+            'decel_std':[],
             'VSP_mean':[],
-            'VSP_cv':[],
+            'VSP_std':[],
             'brakeDecel_mean':[],
-            'brakeDecel_cv':[],
+            'brakeDecel_std':[],
             'grade_mean':[],
-            'grade_cv':[],
+            'grade_std':[],
             'OpModeCount':[]
         }
         warnings.filterwarnings("ignore")
@@ -216,16 +218,19 @@ class Aggregator():
                 dict_agg['mileage'].append(df[distCol].sum())
 
                 dict_agg['speed_mean'].append(df[speedCol].mean())
-                dict_agg['speed_cv'].append(df[speedCol].std()/df[speedCol].mean())
                 dict_agg['acc_mean'].append(df[accCol].mean())
-                dict_agg['acc_cv'].append(df[accCol].std()/df[accCol].mean())
+                dict_agg['decel_mean'].append(df[df[accCol] < 0][accCol].mean())
                 dict_agg['VSP_mean'].append(df[VSPCol].mean())
-                dict_agg['VSP_cv'].append(df[VSPCol].std()/df[VSPCol].mean())
                 dict_agg['brakeDecel_mean'].append(df[df[brakeCol]==True][accCol].mean())
-                dict_agg['brakeDecel_cv'].append(df[df[brakeCol]==True][accCol].std() / df[df[brakeCol]==True][accCol].mean())
                 dict_agg['grade_mean'].append(df[gradeCol].mean())
-                dict_agg['grade_cv'].append(df[gradeCol].std()/df[gradeCol].mean())
                 
+                dict_agg['speed_std'].append(df[speedCol].std())
+                dict_agg['acc_std'].append(df[accCol].std())
+                dict_agg['decel_std'].append(df[df[accCol] < 0][accCol].std())
+                dict_agg['VSP_std'].append(df[VSPCol].std())
+                dict_agg['brakeDecel_std'].append(df[df[brakeCol]==True][accCol].std())
+                dict_agg['grade_std'].append(df[gradeCol].std())
+
                 dict_agg['OpModeCount'].append(getOpModeCount(df, OpModeCol))
             else:
                 # calculate cummulative distance
@@ -246,15 +251,18 @@ class Aggregator():
                     dict_agg['mileage'].append(df_[distCol].sum())
 
                     dict_agg['speed_mean'].append(df_[speedCol].mean())
-                    dict_agg['speed_cv'].append(df_[speedCol].std()/df_[speedCol].mean())
                     dict_agg['acc_mean'].append(df_[accCol].mean())
-                    dict_agg['acc_cv'].append(df_[accCol].std()/df_[accCol].mean())
+                    dict_agg['decel_mean'].append(df_[df_[accCol] < 0][accCol].mean())
                     dict_agg['VSP_mean'].append(df_[VSPCol].mean())
-                    dict_agg['VSP_cv'].append(df_[VSPCol].std()/df_[VSPCol].mean())
                     dict_agg['brakeDecel_mean'].append(df_[df_[brakeCol]==True][accCol].mean())
-                    dict_agg['brakeDecel_cv'].append(df_[df_[brakeCol]==True][accCol].std() / df_[df_[brakeCol]==True][accCol].mean())
                     dict_agg['grade_mean'].append(df_[gradeCol].mean())
-                    dict_agg['grade_cv'].append(df_[gradeCol].std()/df_[gradeCol].mean())
+                    
+                    dict_agg['speed_std'].append(df_[speedCol].std())
+                    dict_agg['acc_std'].append(df_[accCol].std())
+                    dict_agg['decel_std'].append(df_[df_[accCol] < 0][accCol].std())
+                    dict_agg['VSP_std'].append(df_[VSPCol].std())
+                    dict_agg['brakeDecel_std'].append(df_[df_[brakeCol]==True][accCol].std())
+                    dict_agg['grade_std'].append(df_[gradeCol].std())
 
                     dict_agg['OpModeCount'].append(getOpModeCount(df_, OpModeCol))
         
