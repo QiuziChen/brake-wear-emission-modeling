@@ -140,3 +140,8 @@ pytrack/meta.yaml
 
 # test file
 test.ipynb
+
+# cache
+./__pycache__/
+.pyc
+*.pyc
