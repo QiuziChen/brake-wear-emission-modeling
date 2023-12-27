@@ -90,7 +90,7 @@ class Aggregator():
         
         # define agg file
         df_agg = pd.DataFrame(
-            columns=['trajCount', 'brakeCount', 'mileage', 'speedBinCount', 'accBinCount', 'brakeDecelBinCount', 'VSPBinCount', 'OpModeCount'],
+            columns=['trajCount', 'brakeCount', 'brakeEventNum', 'mileage', 'speedBinCount', 'accBinCount', 'brakeDecelBinCount', 'VSPBinCount', 'OpModeCount'],
             index=ref_list
         )
         df_agg.loc[:,:] = 0
@@ -103,6 +103,7 @@ class Aggregator():
 
             df_agg.loc[id]['trajCount'] = df.shape[0]
             df_agg.loc[id]['brakeCount'] = df[df[brakeCol]==True].shape[0]
+            df_agg.loc[id]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
             df_agg.loc[id]['mileage'] = df[distCol].sum()
             df_agg.loc[id]['speedBinCount'] = getBinCount(df, binCol=speedCol, bins=self.SPEED_BIN)
             df_agg.loc[id]['accBinCount'] = getBinCount(df, binCol=accCol, bins=self.ACC_BIN)
@@ -131,7 +132,7 @@ class Aggregator():
         
         # define agg file
         df_agg = pd.DataFrame(
-            columns=['trajCount', 'brakeCount', 'mileage', 'speedMean', 'accMean', 'VSPMean', 'brakeDecelMean', 'OpModeCount'],
+            columns=['trajCount', 'brakeCount', 'brakeEventNum', 'mileage', 'speedMean', 'accMean', 'VSPMean', 'brakeDecelMean', 'OpModeCount'],
             index=ref_list
         )
         df_agg.loc[:,:] = 0
@@ -144,6 +145,7 @@ class Aggregator():
 
             df_agg.loc[id]['trajCount'] = df.shape[0]
             df_agg.loc[id]['brakeCount'] = df[df[brakeCol]==True].shape[0]
+            df_agg.loc[id]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
             df_agg.loc[id]['mileage'] = df[distCol].sum()
 
             df_agg.loc[id]['speedMean'] = df[speedCol].mean()
@@ -186,6 +188,7 @@ class Aggregator():
             'trajCount':[],
             'brakeCount':[],
             'idlingCount':[],
+            'brakeEventNum':[],
             'mileage':[],
             'speed_mean':[],
             'speed_std':[],
@@ -195,6 +198,7 @@ class Aggregator():
             'decel_std':[],
             'VSP_mean':[],
             'VSP_std':[],
+            'initSpeed_mean':[],
             'brakeDecel_mean':[],
             'brakeDecel_std':[],
             'grade_mean':[],
@@ -210,28 +214,34 @@ class Aggregator():
             ].copy()
 
             if df[distCol].sum() <= maxMileage:
-                dict_agg['vehID'].append(df.iloc[0][vehIDCol])
-                dict_agg['startHour'].append(df.iloc[0][hourCol])
-                dict_agg['trajCount'].append(df.shape[0])
-                dict_agg['brakeCount'].append(df[df[brakeCol]==True].shape[0])
-                dict_agg['idlingCount'].append(df[df[OpModeCol]==1].shape[0])
-                dict_agg['mileage'].append(df[distCol].sum())
+                pass
+                # dict_agg['vehID'].append(df.iloc[0][vehIDCol])
+                # dict_agg['startHour'].append(df.iloc[0][hourCol])
+                # dict_agg['trajCount'].append(df.shape[0])
+                # dict_agg['brakeCount'].append(df[df[brakeCol]==True].shape[0])
+                # dict_agg['idlingCount'].append(df[df[OpModeCol]==1].shape[0])
+                # dict_agg['brakeEventNum'].append(df[brakeCol].diff().value_counts(normalize=False)[True] // 2)
+                # dict_agg['mileage'].append(df[distCol].sum())
 
-                dict_agg['speed_mean'].append(df[speedCol].mean())
-                dict_agg['acc_mean'].append(df[accCol].mean())
-                dict_agg['decel_mean'].append(df[df[accCol] < 0][accCol].mean())
-                dict_agg['VSP_mean'].append(df[VSPCol].mean())
-                dict_agg['brakeDecel_mean'].append(df[df[brakeCol]==True][accCol].mean())
-                dict_agg['grade_mean'].append(df[gradeCol].mean())
+                # dict_agg['speed_mean'].append(df[speedCol].mean())
+                # dict_agg['acc_mean'].append(df[accCol].mean())
+                # dict_agg['decel_mean'].append(df[df[accCol] < 0][accCol].mean())
+                # dict_agg['VSP_mean'].append(df[VSPCol].mean())
+                # dict_agg['brakeDecel_mean'].append(df[df[brakeCol]==True][accCol].mean())
+                # dict_agg['grade_mean'].append(df[gradeCol].mean())
+
+                # # calculate braking status change
+                # df['status'] = df[brakeCol].diff()
+                # dict_agg['initSpeed_mean'].append(df[(df[brakeCol]==True) & (df['status']==True)][speedCol].mean())
                 
-                dict_agg['speed_std'].append(df[speedCol].std())
-                dict_agg['acc_std'].append(df[accCol].std())
-                dict_agg['decel_std'].append(df[df[accCol] < 0][accCol].std())
-                dict_agg['VSP_std'].append(df[VSPCol].std())
-                dict_agg['brakeDecel_std'].append(df[df[brakeCol]==True][accCol].std())
-                dict_agg['grade_std'].append(df[gradeCol].std())
+                # dict_agg['speed_std'].append(df[speedCol].std())
+                # dict_agg['acc_std'].append(df[accCol].std())
+                # dict_agg['decel_std'].append(df[df[accCol] < 0][accCol].std())
+                # dict_agg['VSP_std'].append(df[VSPCol].std())
+                # dict_agg['brakeDecel_std'].append(df[df[brakeCol]==True][accCol].std())
+                # dict_agg['grade_std'].append(df[gradeCol].std())
 
-                dict_agg['OpModeCount'].append(getOpModeCount(df, OpModeCol))
+                # dict_agg['OpModeCount'].append(getOpModeCount(df, OpModeCol))
             else:
                 # calculate cummulative distance
                 df['dist_cum'] = df[distCol].cumsum()
@@ -239,7 +249,7 @@ class Aggregator():
                 
                 # re-segment
                 segID = np.array([df[df['dist_cum'] >= maxM].index[0] for maxM in maxMileage * np.arange(0, cumMileage//maxMileage+1)])
-                segID = np.append(segID, df.index[-1]+1)
+                # segID = np.append(segID, df.index[-1]+1)
 
                 for id0, id1 in zip(segID[:-1], segID[1:]):
                     df_ = df.loc[id0:id1].copy()
@@ -248,20 +258,25 @@ class Aggregator():
                     dict_agg['trajCount'].append(df_.shape[0])
                     dict_agg['brakeCount'].append(df_[df_[brakeCol]==True].shape[0])
                     dict_agg['idlingCount'].append(df_[df_[OpModeCol]==1].shape[0])
+                    dict_agg['brakeEventNum'].append(df_[brakeCol].diff().value_counts(normalize=False)[True] // 2)
                     dict_agg['mileage'].append(df_[distCol].sum())
 
                     dict_agg['speed_mean'].append(df_[speedCol].mean())
                     dict_agg['acc_mean'].append(df_[accCol].mean())
-                    dict_agg['decel_mean'].append(df_[df_[accCol] < 0][accCol].mean())
+                    dict_agg['decel_mean'].append(np.abs(df_[df_[accCol] < 0][accCol].mean()))
                     dict_agg['VSP_mean'].append(df_[VSPCol].mean())
-                    dict_agg['brakeDecel_mean'].append(df_[df_[brakeCol]==True][accCol].mean())
+                    dict_agg['brakeDecel_mean'].append(np.abs(df_[df_[brakeCol]==True][accCol].mean()))
                     dict_agg['grade_mean'].append(df_[gradeCol].mean())
-                    
+
+                    # calculate braking status change
+                    df_['status'] = df_[brakeCol].diff()
+                    dict_agg['initSpeed_mean'].append(df_[(df_[brakeCol]==True) & (df_['status']==True)][speedCol].mean())
+                
                     dict_agg['speed_std'].append(df_[speedCol].std())
                     dict_agg['acc_std'].append(df_[accCol].std())
-                    dict_agg['decel_std'].append(df_[df_[accCol] < 0][accCol].std())
+                    dict_agg['decel_std'].append(np.abs(df_[df_[accCol] < 0][accCol].std()))
                     dict_agg['VSP_std'].append(df_[VSPCol].std())
-                    dict_agg['brakeDecel_std'].append(df_[df_[brakeCol]==True][accCol].std())
+                    dict_agg['brakeDecel_std'].append(np.abs(df_[df_[brakeCol]==True][accCol].std()))
                     dict_agg['grade_std'].append(df_[gradeCol].std())
 
                     dict_agg['OpModeCount'].append(getOpModeCount(df_, OpModeCol))
@@ -270,5 +285,6 @@ class Aggregator():
         df_agg.fillna(0, inplace=True)
         df_agg['brakeFrac'] = df_agg['brakeCount'] / df_agg['trajCount']
         df_agg['idlingFrac'] = df_agg['idlingCount'] / df_agg['trajCount']
+        df_agg['brakingFreq'] = df_agg['brakeEventNum'] / df_agg['mileage']
 
         return df_agg
