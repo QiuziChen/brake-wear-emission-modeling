@@ -258,7 +258,10 @@ class Aggregator():
                     dict_agg['trajCount'].append(df_.shape[0])
                     dict_agg['brakeCount'].append(df_[df_[brakeCol]==True].shape[0])
                     dict_agg['idlingCount'].append(df_[df_[OpModeCol]==1].shape[0])
-                    dict_agg['brakeEventNum'].append(df_[brakeCol].diff().value_counts(normalize=False)[True] // 2)
+                    try:
+                        dict_agg['brakeEventNum'].append(df_[brakeCol].diff().value_counts(normalize=False)[True] // 2)
+                    except:
+                        dict_agg['brakeEventNum'].append(0)
                     dict_agg['mileage'].append(df_[distCol].sum())
 
                     dict_agg['speed_mean'].append(df_[speedCol].mean())
