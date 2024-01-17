@@ -326,9 +326,10 @@ class Aggregator():
         traj_gdf = gpd.GeoDataFrame(traj, geometry='geometry')
         
         # define agg file
+        osmid = sorted(nodes['osmid'].dropna().unique())
         agg_node = pd.DataFrame(
-            columns=['osmid', 'trajCount', 'brakeCount', 'brakeEventNum', 'mileage', 'speedMean', 'accMean', 'VSPMean', 'brakeDecelMean', 'OpModeCount'],
-            index=nodes.index
+            columns=['trajCount', 'brakeCount', 'brakeEventNum', 'mileage', 'speedMean', 'accMean', 'VSPMean', 'brakeDecelMean', 'OpModeCount'],
+            index=osmid
         )
         agg_node.loc[:,:] = 0
         
@@ -337,25 +338,25 @@ class Aggregator():
 
             # filter points in buffer
             df = traj_gdf.clip(mask=nodes.loc[i].geometry.buffer(dist / EARTH_RADIUS_M * 180 / PI)).copy()
-            agg_node.loc[i]['osmid'] = nodes.loc[i]['osmid']
+            id = nodes.loc[i, 'osmid']
 
             if df.shape[0] == 0:
                 pass
             else:
-                agg_node.loc[i]['trajCount'] = df.shape[0]
-                agg_node.loc[i]['brakeCount'] = df[df[brakeCol]==True].shape[0]
+                agg_node.loc[id]['trajCount'] = df.shape[0]
+                agg_node.loc[id]['brakeCount'] = df[df[brakeCol]==True].shape[0]
                 try:
-                    agg_node.loc[i]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
+                    agg_node.loc[id]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
                 except:
                     pass
-                agg_node.loc[i]['mileage'] = df[distCol].sum()
+                agg_node.loc[id]['mileage'] = df[distCol].sum()
 
-                agg_node.loc[i]['speedMean'] = df[speedCol].mean()
-                agg_node.loc[i]['accMean'] = df[accCol].mean()
-                agg_node.loc[i]['VSPMean'] = df[VSPCol].mean()
-                agg_node.loc[i]['brakeDecelMean'] = df[df[brakeCol]==True][accCol].mean()
+                agg_node.loc[id]['speedMean'] = df[speedCol].mean()
+                agg_node.loc[id]['accMean'] = df[accCol].mean()
+                agg_node.loc[id]['VSPMean'] = df[VSPCol].mean()
+                agg_node.loc[id]['brakeDecelMean'] = df[df[brakeCol]==True][accCol].mean()
 
-                agg_node.loc[i]['OpModeCount'] = getOpModeCount(df, OpModeCol)
+                agg_node.loc[id]['OpModeCount'] = getOpModeCount(df, OpModeCol)
 
-        return nodes.merge(agg_node, on='osmid')
+        return agg_node
             
