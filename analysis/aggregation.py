@@ -11,7 +11,15 @@ import warnings
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
+import geopandas as gpd
+from shapely import Point
+
 from analysis.calculation import getDecelBinCount, getBinCount, getOpModeCount
+
+
+PI = 3.1415926535897932384626  # π
+EARTH_RADIUS_M = 6371009
 
 
 class Aggregator():
@@ -291,3 +299,63 @@ class Aggregator():
         df_agg['brakingFreq'] = df_agg['brakeEventNum'] / df_agg['mileage']
 
         return df_agg
+    
+    def nodeAgg(
+            self,
+            traj:pd.DataFrame,
+            nodes:gpd.GeoDataFrame,
+            dist=20,
+            lon='lon',
+            lat='lat',
+            brakeCol='braking',
+            distCol='dist[km]',
+            speedCol='speed[km/h]',
+            accCol='acc[m/s2]',
+            VSPCol='VSP[kW/t]',
+            OpModeCol='OpModeID',
+    ):
+        """
+        traj: trajectory data, DataFrame
+        nodes: nodes data of the roadnet, GeoDataFrame
+        dist: enlarge distance of the intersection area
+        """
+        warnings.filterwarnings("ignore")
+
+        # intial geodataframe for traj
+        traj['geometry'] = traj.apply(lambda x: Point(x[lon], x[lat]), axis=1)
+        traj_gdf = gpd.GeoDataFrame(traj, geometry='geometry')
+        
+        # define agg file
+        agg_node = pd.DataFrame(
+            columns=['osmid', 'trajCount', 'brakeCount', 'brakeEventNum', 'mileage', 'speedMean', 'accMean', 'VSPMean', 'brakeDecelMean', 'OpModeCount'],
+            index=nodes.index
+        )
+        agg_node.loc[:,:] = 0
+        
+        # clip
+        for i in tqdm(set(nodes.index), desc="Agg nodes"):
+
+            # filter points in buffer
+            df = traj_gdf.clip(mask=nodes.loc[i].geometry.buffer(dist / EARTH_RADIUS_M * 180 / PI)).copy()
+            agg_node.loc[i]['osmid'] = nodes.loc[i]['osmid']
+
+            if df.shape[0] == 0:
+                pass
+            else:
+                agg_node.loc[i]['trajCount'] = df.shape[0]
+                agg_node.loc[i]['brakeCount'] = df[df[brakeCol]==True].shape[0]
+                try:
+                    agg_node.loc[i]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
+                except:
+                    pass
+                agg_node.loc[i]['mileage'] = df[distCol].sum()
+
+                agg_node.loc[i]['speedMean'] = df[speedCol].mean()
+                agg_node.loc[i]['accMean'] = df[accCol].mean()
+                agg_node.loc[i]['VSPMean'] = df[VSPCol].mean()
+                agg_node.loc[i]['brakeDecelMean'] = df[df[brakeCol]==True][accCol].mean()
+
+                agg_node.loc[i]['OpModeCount'] = getOpModeCount(df, OpModeCol)
+
+        return nodes.merge(agg_node, on='osmid')
+            
