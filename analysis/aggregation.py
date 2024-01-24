@@ -153,7 +153,10 @@ class Aggregator():
 
             df_agg.loc[id]['trajCount'] = df.shape[0]
             df_agg.loc[id]['brakeCount'] = df[df[brakeCol]==True].shape[0]
-            df_agg.loc[id]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
+            try:
+                df_agg.loc[id]['brakeEventNum'] = df[brakeCol].diff().value_counts(normalize=False)[True] // 2
+            except:
+                pass
             df_agg.loc[id]['mileage'] = df[distCol].sum()
 
             df_agg.loc[id]['speedMean'] = df[speedCol].mean()
