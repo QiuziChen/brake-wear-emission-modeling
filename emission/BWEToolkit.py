@@ -10,7 +10,7 @@
 
 import pandas as pd
 from emission.braking import PEREDetect
-from emission.MOVES import OpModeDetect
+from emission.OpMode import OpModeDetect
 from emission.emissionRate import ERCalculator
 
 
