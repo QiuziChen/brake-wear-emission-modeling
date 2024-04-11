@@ -170,7 +170,7 @@ def grade2traj(
         traj.loc[:, gradeColName] = np.divide(a, b, where=b!=0)  # avoid distance=0
         traj.loc[:, gradeColName] = traj[gradeColName].apply(np.arctan)  # theta=arctan(grade)
 
-        traj.drop(['ele[m]'], axis=1, inplace=True)
+        # traj.drop(['ele[m]'], axis=1, inplace=True)
     else:
         traj.loc[:, gradeColName] = 0
 
